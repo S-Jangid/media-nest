@@ -1,0 +1,17 @@
+{
+  "name": "media-nest",
+  "version": "1.0.0",
+  "description": "Streaming platform with multi user interactions and metrics",
+  "keywords": [
+    "javascript",
+    "node",
+    "express"
+  ],
+  "license": "ISC",
+  "author": "Shubham",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
