@@ -31,7 +31,6 @@ const userSchema = new Schema({
     },
     coverImage:{
         type : String,
-        required: true
     },
     watchHistory:[{
         type : Schema.Types.ObjectId,
@@ -45,14 +44,14 @@ const userSchema = new Schema({
         type : String
     }
 
-}, {timeStamps: true});
+}, {timestamps: true});
 
 
 userSchema.pre('save', async function (next) {
-    if( ! this.isModified('password')) return next();
+    if( ! this.isModified('password')) return; //next() is not in the mongoose version > 8.0.0 returning is enough
     
     this.password = await bcrypt.hash(this.password, 10);
-    next();
+    //next() is not in the mongoose version > 8.0.0
 });
 
 userSchema.methods.isCorrectPassword = async function(password){
