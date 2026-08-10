@@ -1,7 +1,7 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import {ApiError} from "../utils/ApiError.js"
 import { User } from "../models/user.model.js";
-import { uploadFileToCloudinary } from "../utils/cloudinary.js";
+import { deleteFileFromCloudinary, uploadFileToCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
 
@@ -293,19 +293,28 @@ const updateUserAvatar = asyncHandler( async(req,res) => {
     const localAvatarFile = req.file?.path;
 
     if( ! localAvatarFile){
-        throw new ApiError(400, "Avatar file is required");
+        throw new ApiError(400, "Avatar file is required.");
     }
 
     const avatar = await uploadFileToCloudinary(localAvatarFile);
 
     
     if( ! avatar.url){
-        throw new ApiError(500, "Something went wrong while uploading the avatar to cloudinary");
+        throw new ApiError(500, "Something went wrong while uploading the avatar to cloudinary.");
+    }
+
+    // Deleting existing avatar from the cloudinary
+    const result = deleteFileFromCloudinary(req.user?.avatar);
+
+    if( result === "ok"){
+        console.log("Previous avatar deleted from cloudinary successfully.");
+    }else{
+        console.log("Previous avatar not found.");
     }
 
     // As we will apply the middleware to get the user id from the access token as user will be already logged in to update his details
     const user = await User.findByIdAndUpdate(
-        user?._id,
+        req.user?._id,
         {
             $set : {
                 avatar: avatar.url
@@ -334,18 +343,28 @@ const updateUserCoverImage = asyncHandler( async(req,res) => {
     const localCoverImagePath = req.file?.path;
 
     if( ! localCoverImagePath){
-        throw new ApiError(400, "Cover image file is required");
+        throw new ApiError(400, "Cover image file is required.");
     }
 
-    const coverImage = uploadFileToCloudinary(localCoverImagePath);
+    const coverImage = await uploadFileToCloudinary(localCoverImagePath);
 
     if( ! coverImage.url){
-        throw new ApiError(500, "Something went wrong while uploading the cover image to cloudinary");
+        throw new ApiError(500, "Something went wrong while uploading the cover image to cloudinary.");
+    }
+    
+    // Deleting existing cover image from the cloudinary
+    const result = deleteFileFromCloudinary(req.user?.coverImage);
+
+    if( result === "ok"){
+        console.log("Previous cover image deleted from cloudinary successfully.");
+    }else{
+        console.log("Previous cover image not found.");
+        
     }
 
     // As we will apply the middleware to get the user id from the access token as user will be already logged in to update his details
     const user = await User.findByIdAndUpdate(
-        user?._id,
+        req.user?._id,
         {
             $set : {
                 coverImage : coverImage.url

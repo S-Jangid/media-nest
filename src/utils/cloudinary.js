@@ -26,6 +26,27 @@ const uploadFileToCloudinary = async(tempFilePath) => {
     }
 }
 
+// Getting public id of the cloudinary image using url
+function getCloudinaryFilePublicId(url) {
+    let publicId = url.split("/upload/")[1];
+
+    publicId = publicId.replace(/^v\d+\//, "");
+
+    return publicId.substring(0, publicId.lastIndexOf("."));
+}
+
+const deleteFileFromCloudinary = async(uploadedImageFilePath) => {
+    try {
+
+        const publicId = getCloudinaryFilePublicId(uploadedImageFilePath);
+        const result = await cloudinary.uploader.destroy(publicId);
+        return result;
+
+    } catch (error) {
+        return error
+    }
+}
 
 
-export {uploadFileToCloudinary};
+
+export {uploadFileToCloudinary, deleteFileFromCloudinary};
