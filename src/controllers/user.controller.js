@@ -387,7 +387,7 @@ const updateUserCoverImage = asyncHandler( async(req,res) => {
 
 })
 
-const getUserChannel = asyncHandler((req, res) => {
+const getUserChannel = asyncHandler(async(req, res) => {
     const username = req.params
 
     if(! username){
@@ -460,4 +460,67 @@ const getUserChannel = asyncHandler((req, res) => {
     )
 })
 
-export {registerUser, loginUser, logoutUser, regenerateAccessToken, changePassword, updateAccountDetails, updateUserAvatar, updateUserCoverImage};
+const getWatchHistory = asyncHandler( async(req, res) => {
+
+    const user = await User.aggregate([
+        {
+            $match : {
+                _id : new mongoose.Types.ObjectId(req.user?._id) // We create the object id becuase in the database the id is stored in object format instead of id as a string.
+            }
+        },
+        {
+            $lookup: {
+                from: "videos",
+                localField: "watchHistory",
+                foreignField: "_id",
+                as: "watchHistory",
+                pipeline: [
+                    {
+                        $lookup: {
+                            from: "users",
+                            localField: "owner",
+                            foreignField: "_id",
+                            as: "owner"
+                        },
+                    },
+                    {
+                        $project:{
+                            username: 1,
+                            fullName: 1,
+                            avatar: 1
+                        }
+                        
+                    },
+                    {
+                        $addFields: {
+                            owner:{
+                                $first : "$owner"
+                            } 
+                        }
+                    }
+
+                ]
+            }
+        }
+    ])
+
+    return res
+    .status(200)
+    .json({
+        new ApiResponse( 200, "Watch history fetched successfully", user[0].watchHistory)
+    })
+})
+
+export {
+    registerUser, 
+    loginUser, 
+    logoutUser, 
+    regenerateAccessToken, 
+    changePassword, 
+    getCurrentUser,
+    updateAccountDetails, 
+    updateUserAvatar, 
+    updateUserCoverImage,
+    getUserChannel,
+    getWatchHistory
+};
